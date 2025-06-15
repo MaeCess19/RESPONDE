@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard | MDRRMO Gonzaga</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-image: url('qwe.jpg');
+      background-size: cover;
+      background-position: center;
+      color: white;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.6);
+      z-index: 0;
+    }
+
+    header, footer {
+      position: relative;
+      z-index: 1;
+      background-color: rgba(3, 3, 3, 0.7);
+      text-align: center;
+      padding: 20px;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 32px;
+    }
+
+    header p {
+      margin: 5px 0;
+      font-size: 16px;
+    }
+
+    .navbar {
+      background-color: rgba(0, 0, 0, 0.8);
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative; /* CHANGED from fixed */
+      z-index: 1;
+    }
+
+    .navbar .logo {
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .navbar ul {
+      list-style-type: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      gap: 20px;
+    }
+
+    .navbar ul li {
+      display: inline;
+    }
+
+    .navbar ul li a {
+      color: white;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .navbar ul li a:hover {
+      text-decoration: underline;
+    }
+
+    .dashboard-content {
+      position: relative;
+      z-index: 1;
+      padding: 40px 20px;
+      flex: 1;
+      overflow-x: auto;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    table {
+      width: 100%;
+      max-width: 900px;
+      margin: 0 auto;
+      border-collapse: collapse;
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    th, td {
+      padding: 12px 15px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    th {
+      background-color: rgba(0, 123, 255, 0.4);
+    }
+
+    tr:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .status {
+      padding: 5px 10px;
+      border-radius: 5px;
+      font-weight: bold;
+    }
+
+    .pending { background-color: orange; color: black; }
+    .in-progress { background-color: yellow; color: black; }
+    .resolved { background-color: green; color: white; }
+
+    footer {
+      position: relative;
+      z-index: 1;
+      background-color: rgba(3, 3, 3, 0.7);
+      text-align: center;
+      padding: 10px;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>MDRRMO Gonzaga</h1>
+    <p>Emergency Incident Reporting System - Dashboard</p>
+  </header>
+
+  <nav class="navbar">
+    <div class="logo">MDRRMO GONZAGA</div>
+    <ul>
+      <li><a href="dashboard.html">Dashboard</a></li>
+      <li><a href="ReportPage.html">Report Incident</a></li>
+      <li><a href="MyReports.html">My Reports</a></li>
+      <li><a href="#">Logout</a></li>
+    </ul>
+  </nav>
+
+  <section class="dashboard-content">
+    <h2>Incident Reports Status</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Report ID</th>
+          <th>Incident Type</th>
+          <th>Location</th>
+          <th>Date Reported</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="reportTableBody">
+        <!-- Dynamic rows inserted here -->
+      </tbody>
+    </table>
+  </section>
+
+  <footer>
+    &copy; 2025 MDRRMO Gonzaga. All rights reserved.
+  </footer>
+
+  <script>
+    const reports = JSON.parse(localStorage.getItem('myReports')) || [];
+    const tbody = document.getElementById('reportTableBody');
+
+    if (reports.length === 0) {
+      const row = document.createElement('tr');
+      row.innerHTML = `<td colspan="5" style="text-align: center;">No incident reports submitted yet.</td>`;
+      tbody.appendChild(row);
+    } else {
+      reports.forEach(report => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${report.id}</td>
+          <td>${report.incidentType || 'N/A'}</td>
+          <td>${report.location}</td>
+          <td>${report.date}</td>
+          <td><span class="status ${report.status.toLowerCase().replace(" ", "-")}">${report.status}</span></td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+  </script>
+</body>
+</html>

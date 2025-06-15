@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Incident Report</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-image: url('qwe.jpg');
+      background-size: cover;
+      background-position: center;
+      min-height: 100vh;
+      overflow-y: auto;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 40px 0;
+      position: relative;
+    }
+
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 0;
+    }
+
+    .incident-report-container {
+      position: relative;
+      z-index: 1;
+      background-color: rgba(255, 255, 255, 0.95);
+      padding: 30px;
+      border-radius: 15px;
+      width: 90%;
+      max-width: 500px;
+      color: #222;
+    }
+
+    .incident-report-container h2 {
+      text-align: center;
+    }
+
+    .incident-report-container input[type="text"],
+    .incident-report-container input[type="file"],
+    .incident-report-container select {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    .incident-report-container label {
+      display: block;
+      margin-top: 10px;
+    }
+
+    .incident-report-container button {
+      width: 48%;
+      padding: 10px;
+      margin: 10px 1%;
+      border: none;
+      border-radius: 5px;
+      background-color: #007bff;
+      color: white;
+      cursor: pointer;
+    }
+
+    .incident-report-container button:hover {
+      background-color: #0056b3;
+    }
+
+    #map {
+      height: 250px;
+      margin-top: 15px;
+      border-radius: 10px;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 99;
+      left: 0; top: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(0, 0, 0, 0.6);
+    }
+
+    .modal-content {
+      background: #fff;
+      padding: 20px;
+      max-width: 400px;
+      margin: 15% auto;
+      border-radius: 10px;
+      text-align: center;
+    }
+
+    .modal-content button {
+      width: 100px;
+      background-color: #28a745;
+    }
+  </style>
+</head>
+<body>
+
+<div class="incident-report-container">
+  <h2>INCIDENT REPORT</h2>
+  <p>Select Location Method</p>
+  <label><input type="radio" name="location-method" id="use-current"> Use Current Location</label>
+  <label><input type="radio" name="location-method" id="search-location" checked> Search Location</label>
+
+  <label for="location">Location:</label>
+  <input type="text" id="location" placeholder="Type an address">
+
+  <!-- Incident Type Added -->
+  <label for="incident-type">Incident Type:</label>
+  <select id="incident-type">
+    <option value="Fire">Fire</option>
+    <option value="Flood">Flood</option>
+    <option value="Earthquake">Earthquake</option>
+    <option value="Landslide">Landslide</option>
+    <option value="Accident">Accident</option>
+    <option value="Other">Other</option>
+  </select>
+
+  <div id="map"></div>
+
+  <label>Landmark (2 Photos Minimum):</label>
+  <input type="file" accept="image/*" multiple>
+
+  <label>Proof (2 Photos Minimum):</label>
+  <input type="file" accept="image/*" multiple>
+
+  <div style="text-align: center;">
+    <button onclick="submitReport()">Submit</button>
+    <button onclick="window.history.back()">Back</button>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal" id="confirmationModal">
+  <div class="modal-content">
+    <h3>Report Submitted!</h3>
+    <p>Your incident report has been successfully submitted.</p>
+    <button onclick="closeModal()">OK</button>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+  const map = L.map('map').setView([17.0, 122.0], 13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+
+  let marker;
+
+  document.getElementById('location').addEventListener('input', function () {
+    const query = this.value;
+    if (query.length > 3) {
+      fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.length > 0) {
+            const { lat, lon } = data[0];
+            map.setView([lat, lon], 16);
+            if (marker) map.removeLayer(marker);
+            marker = L.marker([lat, lon]).addTo(map);
+          }
+        });
+    }
+  });
+
+  document.getElementById('use-current').addEventListener('change', function () {
+    if (this.checked && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(pos => {
+        const { latitude, longitude } = pos.coords;
+        map.setView([latitude, longitude], 16);
+        if (marker) map.removeLayer(marker);
+        marker = L.marker([latitude, longitude]).addTo(map);
+        document.getElementById('location').value = `${latitude}, ${longitude}`;
+      });
+    }
+  });
+
+  function submitReport() {
+    const location = document.getElementById('location').value;
+    const incidentType = document.getElementById('incident-type').value;
+
+    if (!location) {
+      alert("Please enter or select a location.");
+      return;
+    }
+
+    const report = {
+      id: "IR-" + String(Date.now()).slice(-6),
+      location,
+      incidentType,
+      date: new Date().toISOString().split("T")[0],
+      status: "Pending"
+    };
+
+    const existingReports = JSON.parse(localStorage.getItem("myReports")) || [];
+    existingReports.push(report);
+    localStorage.setItem("myReports", JSON.stringify(existingReports));
+
+    document.getElementById('confirmationModal').style.display = 'block';
+  }
+
+  function closeModal() {
+    document.getElementById('confirmationModal').style.display = 'none';
+    window.location.href = "dashboard.html"; // Go to dashboard
+  }
+</script>
+</body>
+</html>
